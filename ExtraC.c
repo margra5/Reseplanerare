@@ -20,15 +20,30 @@ struct vara_t {
 
 typedef struct db_t * DB;
 
+typedef struct db_2 * DB_2;
+
 struct db_t{
   struct vara_t *first;
   int antal_2;
   char last_used;
 };
 
+struct db_2{
+  struct vara_t *first;
+  int antal_3;
+};
 
-// Lägg till
-
+int duplicate(DB db, char* c){
+  struct vara_t *vara;
+  for(vara = db->first; vara != NULL; vara = vara -> next){
+    if(strcmp(vara->namn,c) == 0){
+      printf("Du försöker skapa en duplicate\n");
+      return 1;
+    }else{
+      return 0;
+    }
+  }
+}
 
 void add_to_db(DB db, struct vara_t * vara){
   vara -> next = db -> first;
@@ -37,6 +52,16 @@ void add_to_db(DB db, struct vara_t * vara){
   db -> last_used = 'l';
   printf("Info added to database\n");
 }
+
+
+void add_to_db_2(DB_2 db_2, struct vara_t * vara){
+  vara -> next = db_2 -> first;
+  db_2 -> first = vara;
+  db_2 -> antal_3++;
+  printf("Info added to database\n");
+}
+
+
 
 void print_item(struct vara_t *vara){
   printf("          ========================================\n");
@@ -78,14 +103,113 @@ void add_item(DB db){
   vara -> plats_t = ask_string_question("Plats");
   vara -> pris = atoi(ask_string_question("Pris"));
   print_item(vara);
-  if(ask_char_question("\nSpara till Db?", "YyNn") == 'y'){
-    add_to_db(db, vara);
-  }else{
-    free(vara);
+  if(duplicate(db, vara -> namn) == 0){
+    if(ask_char_question("\nSpara till Db?", "YyNn") == 'y'){
+      add_to_db(db, vara);
+    }else{
+      free(vara);
+    }
   }
 }
 
-// Ta bort 
+
+
+int djup(DB db){
+  return db -> antal_2;
+}
+
+struct vara_t * search(DB db){
+  int a = djup(db);
+  struct vara_t *vara = db -> first;
+  char *input = ask_string_question("DERP");
+  for(int i = 0; i < a; i++){
+    if(strcmp(input,db->first->namn)==0){
+      return vara;
+    }else{
+      vara = db -> first -> next;
+    }
+  }
+  return NULL;
+}
+
+
+void redigera_db(DB db_1, DB db_2){
+  char* b = malloc(sizeof(char) * 500);
+  if (db_1 -> first == NULL){
+    printf("Du har inga varor i databasen\n");
+  }else{
+    struct vara_t *vara;
+    printf("Varunamn: \n");
+    scanf("%[^\n]",b);
+    while(getchar() != '\n');
+    for(vara = db_1->first;
+	vara != NULL; 
+	vara = vara -> next
+	){
+      if(strcmp(vara->namn,b) == 1){
+	printf("Varan finns inte \n");
+	break;
+      }else{
+	char q = ask_char_question("Vad vill du redigera", "NnBbAaPpSs");
+	if(q == 'n'){
+	  char* c = ask_string_question("Namn");
+	  if(duplicate(db_1, c) == 0){
+	    vara -> namn = c;
+	    db_1 -> last_used = 'r';
+	    printf("Varans namn har redigerats\n");
+	    return;
+	  }
+	}
+	else if(q == 'b'){
+	  vara -> beskrivning = ask_string_question("Beskrivning");
+	  db_1 -> last_used = 'r';
+	  printf("Beskrivingen av varan har redigerats\n");
+	  return;
+	}
+	else if(q == 'a'){
+	  vara -> antal_1 = atoi(ask_string_question("Antal"));
+	  db_1 -> last_used = 'r';
+	  printf("Antalet varor har redigerats\n");
+	  return;
+	}
+	else if(q == 'p'){
+	  char* c = ask_string_question("Plats");
+	  if(duplicate(db_1, c) == 0){
+	    vara -> plats_t = c;
+	    db_1 -> last_used = 'r';
+	    printf("Varans plats har redigerats\n");
+	    return;
+	  }
+	}
+	else if(q == 's'){
+	  vara -> pris = atoi(ask_string_question("Pris"));
+	  db_1 -> last_used = 'r';
+	  printf("Varans pris har redigerats\n");
+	  return;
+	}   
+      }
+    }
+  }
+}
+// Lägg till
+
+
+// lagersaldo
+
+void print_all(DB db){
+  int i;
+  struct vara_t *vara = db -> first;
+  if (db -> first == NULL){
+    printf("Du har inga varor i databasen\n");
+  }else{
+    for(i = 0; i < db -> antal_2; i++){
+      print_item(vara);
+      vara = vara -> next;
+    }
+  }
+}
+
+
 
 // Ångra vara
 
@@ -105,11 +229,13 @@ void undo(DB db_1, DB db_2){
     }
   */
   else if (db_1 -> last_used == 'r'){
-    printf("Senaste redigerade varan har ångrats\n");
+    printf("Inte Klart\n");
+    //printf("Senaste redigerade varan har ångrats\n");
     db_1 -> last_used = 'o';
   }
   else if (db_1 -> last_used == 't'){
-    printf("Senaste borttagna varan har ångrats\n");
+    printf("Inte implementerat\n");
+    // printf("Senaste borttagna varan har ångrats\n");
     db_1 -> last_used = 'o';
   } 
   else if (db_1 -> last_used == 'o'){
@@ -120,21 +246,6 @@ void undo(DB db_1, DB db_2){
   } 
 }
 
-
-// lagersaldo
-
-void print_all(DB db){
-  int i;
-  struct vara_t *vara = db -> first;
-  if (db -> first == NULL){
-    printf("Du har inga varor i databasen\n");
-  }else{
-    for(i = 0; i < db -> antal_2; i++){
-      print_item(vara);
-      vara = vara -> next;
-    }
-  }
-}
 
 // redigera vara 
 
@@ -156,14 +267,14 @@ void print_main_menu(void){
   puts("Z or z. Ångra vara (Inte helt klar)");
   puts("L or l. Lägg till vara");
   puts("T or t. Ta bort vara (Ej implementerat)");
-  puts("R or r. Redigera vara (Ej implementerat)");
+  puts("R or r. Redigera vara");
   puts("I or i. Skriv ut alla varor?");
 }
 
 int main(){
   //vara_t vara = malloc(sizeof(struct vara_t));
   DB TEST = malloc(sizeof(struct db_t));
-  DB Undo_db = malloc(sizeof(struct db_t));
+  DB Undo_db = malloc(sizeof(struct db_2));
   TEST -> first = NULL;
   TEST -> antal_2 = 0;
   TEST -> last_used = 'o';
@@ -206,7 +317,7 @@ int main(){
       //  det för användaren annars ta bort sagd vara.
 
     case 't':
-      printf("Du har inte implementerat Ta bort\n");
+      //      ta_bort(TEST);
       break;
 
       //  case 5: Redigera vara 
@@ -215,15 +326,17 @@ int main(){
       //  både varans namn och pris */
 
     case 'r':
-      printf("Du har inte implementerat redigera\n");
+
+      redigera_db(TEST, Undo_db);
       break;
       
       //  case 4: Printa lagersaldo (för specifik vara eller alla?) */
       
     case 'i':
       print_all(TEST);
+      printf("\n_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_\n\n");
+      print_all(Undo_db);
       break;
-
     }   
   }
   return 0;
